@@ -16,7 +16,7 @@ var upgradeWebsocket = websocket.Upgrader{
 }
 
 func checkOrigin(r *http.Request) bool {
-	fmt.Printf("Request's method: %s, host: %s. URI: %s, protocol: %s\n", r.Method, r.Host, r.RequestURI, r.Proto)
+	fmt.Printf("Request's method: [%s], host: [%s]. URI: [%s], protocol: [%s]\n", r.Method, r.Host, r.RequestURI, r.Proto)
 	return r.Method == http.MethodGet
 }
 
@@ -48,7 +48,7 @@ func NewWebsocketChat() *WebsocketChat {
 func (w *WebsocketChat) UserConnectionHandler(rw http.ResponseWriter, r *http.Request) {
 	connection, err := upgradeWebsocket.Upgrade(rw, r, nil)
 	if err != nil {
-		fmt.Printf("Error connecting to %s, error: %v\n", r.Host, err)
+		fmt.Printf("Error connecting to [%s], error: [%v]\n", r.Host, err)
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -83,7 +83,7 @@ func (w *WebsocketChat) AddUserChat(userChat *UserChat) {
 		user.Connection = userChat.Connection
 	} else {
 		w.users[userChat.Username] = userChat
-		fmt.Printf("New user: %s joined\n", userChat.Username)
+		fmt.Printf("New user: [%s] joined\n", userChat.Username)
 	}
 }
 
@@ -91,8 +91,10 @@ func (w *WebsocketChat) SendMessage(message *model.Message) {
 	if targetChat, ok := w.users[message.Target]; ok {
 		err := targetChat.SendMessageToClient(message)
 		if err != nil {
-			fmt.Printf("Error connecting to client: %s, error: %v\n", message.Target, err)
+			fmt.Printf("Error connecting to client: [%s], error: [%v]\n", message.Target, err)
 		}
+	} else {
+		fmt.Printf("No target user: [%s] found\n", message.Target)
 	}
 }
 
@@ -100,6 +102,6 @@ func (w *WebsocketChat) LeaveUserChat(username string) {
 	if user, ok := w.users[username]; ok {
 		defer user.Connection.Close()
 		delete(w.users, username)
-		fmt.Printf("User: %s left the chat\n", username)
+		fmt.Printf("User: [%s] left the chat\n", username)
 	}
 }
